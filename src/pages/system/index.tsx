@@ -60,7 +60,7 @@ const menuItems = [
   // 三、信息管理
   {
     key: 'infoManage',
-    label: '信息管理',
+    label: '人员信息管理',
     icon: <UnorderedListOutlined />,
     children: [
       {
@@ -88,21 +88,21 @@ const menuItems = [
       {
         key: 'normalEntry',
         label: (
-          <Link to="normalentry">常规入服</Link>
+          <Link to="normalentry">问卷加入审核</Link>
         ),
         icon: <FileTextOutlined />
       },
       {
         key: 'invitationEntry',
         label: (
-          <Link to="invitationentry">邀请入服</Link>
+          <Link to="invitationentry">邀请加入审核</Link>
         ),
         icon: <UserAddOutlined />
       },
       {
         key: 'builderAudit',
         label: (
-          <Link to="builderaudit">建筑师审核</Link>
+          <Link to="builderaudit">新建筑师审核</Link>
         ),
         icon: <SolutionOutlined />
       }
@@ -123,14 +123,14 @@ const menuItems = [
       {
         key: 'Setting',
         label: (
-          <Link to="setting">配置</Link>
+          <Link to="setting">参数配置</Link>
         ),
         icon: <ProfileOutlined />
       },
       {
         key: 'UserManage',
         label: (
-          <Link to="usermanage">用户管理</Link>
+          <Link to="usermanage">账号管理</Link>
         ),
         icon: <UserOutlined />
       }
@@ -177,7 +177,7 @@ const Index: React.FC = () => {
     alignItems: 'center',
     paddingLeft: 20, // 左侧间距
     justifyContent: 'space-between', // 两端对齐
-    backgroundColor: '#fff'
+    backgroundColor: '#ff6060'
   };
 
   const userMenu = useMemo(() => (
@@ -251,7 +251,7 @@ const Index: React.FC = () => {
             alt="Logo"
             style={{ width: '80px', height: 'auto' }}
             onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/80'; // 当图片加载失败时，显示占位图
+              e.target.src = 'https://cdn.sa.net/2025/01/28/jE4nwfmQbtKx1Ba.png'; // 当图片加载失败时，显示占位图
             }}
           />
         </div>

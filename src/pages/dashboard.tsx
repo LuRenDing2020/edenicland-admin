@@ -36,7 +36,7 @@ const Dashboard = () => {
             >
                 {/* 根据用户名是否存在来显示不同的内容 */}
                 <Title level={3} style={{ margin: 0 }}>
-                    {username ? `Hi, ${username}` : 'Hi, 访客'}
+                    {username ? `Hello, dear ${username}. Welcome back to Edenicland.` : 'Hi, dear guest.'}
                 </Title>
             </Card>
         </div>

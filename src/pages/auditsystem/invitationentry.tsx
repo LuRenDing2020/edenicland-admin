@@ -1,16 +1,33 @@
 import React from 'react';
-import { Typography } from 'antd';
+import { Card, Typography } from 'antd';
 
-const { Title } = Typography;
+const InvitationEntry: React.FC  = () => {
+  const { Title } = Typography;
 
-const InvitationEntry = () => {
+  // 容器样式
+  const containerStyle: React.CSSProperties = {
+    display: 'flex',
+    height: '90vh',
+    margin: '5px',
+    padding: '5px',
+  };
+
+  // Card 样式
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: '#fff',
+    width: '100%'
+  };
+
   return (
-    <div style={{ justifyContent: 'center' }}>
-      <div className="title">
-        <Title level={2} style={{ marginBottom: 0 }}>EdenicLand 邀请入服</Title>
-        <p>瞎几把乱写的垃圾管理系统</p>
+    <div style={containerStyle}>
+      <Card
+        bordered={false}
+        style={cardStyle}
+      >
+        <Title level={3} style={{ margin: 0 }}>EdenicLand 邀请加入审核</Title>
+        <p>瞎几把乱写的垃圾管理系统，完善中……</p>
+        </Card>
       </div>
-    </div>
   );
 };
 
