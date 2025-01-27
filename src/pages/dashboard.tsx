@@ -1,5 +1,5 @@
 import { Card, Typography } from 'antd';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const { Title } = Typography;
 
@@ -17,13 +17,27 @@ const Dashboard = () => {
         width: '100%'
     };
 
+    // 存储当前登录用户的用户名
+    const [username, setUsername] = useState('');
+
+    // 从后端获取当前登录用户的用户名
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  });
+
     return (
         <div style={containerStyle}>
             <Card
                 bordered={false}
                 style={cardStyle}
             >
-                <Title level={3} style={{ margin: 0 }}>你好，管理员</Title>
+                {/* 根据用户名是否存在来显示不同的内容 */}
+                <Title level={3} style={{ margin: 0 }}>
+                    {username ? `Hi, ${username}` : 'Hi, 访客'}
+                </Title>
             </Card>
         </div>
     );

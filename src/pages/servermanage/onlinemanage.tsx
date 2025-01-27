@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Card, Divider, Select, Space, Table, TableProps, Typography } from 'antd';
 import { ClearOutlined } from '@ant-design/icons';
+import OnlinePlayer from '../../components/onlineplayer.tsx';
 
 const OnlineManage: React.FC = () => {
   const { Title } = Typography;
@@ -23,27 +24,31 @@ const OnlineManage: React.FC = () => {
     backgroundColor: '#fff',
   };
 
-  //card 2 table
+  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+
+  const handleChange = (value: string[]) => {
+    setSelectedValues(value);
+    console.log(`selected ${value}`);
+  };
+
+  const handleClear = () => {
+    setSelectedValues([]);
+  };
+
+  // 选择器样式
+  const selectStyle: React.CSSProperties = {
+    width: '100%',
+    borderColor: '#ff0000',
+    backgroundColor: '#fff',
+  };
+
   interface DataType {
     key: string;
     ID: string;
     permission: string;
   }
-
-  const columns: TableProps<DataType>['columns'] = [
-    {
-      title: 'ID',
-      dataIndex: 'ID',
-      key: 'ID',
-      render: (text) => <a>{text}</a>,
-    },
-    {
-      title: '权限组',
-      dataIndex: 'permission',
-      key: 'permission',
-    },
-  ];
-
+  
+  // 确保 data 变量在使用前已经声明并初始化
   const data: DataType[] = [
     {
       key: '1',
@@ -87,45 +92,12 @@ const OnlineManage: React.FC = () => {
     },
   ];
 
+  // 在 data 变量声明之后声明 options 变量
   const options = data.map((item) => ({
     label: item.ID,
     value: item.ID,
     desc: item.ID,
   }));
-
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
-
-  const handleChange = (value: string[]) => {
-    setSelectedValues(value);
-    console.log(`selected ${value}`);
-  };
-
-  const handleClear = () => {
-    setSelectedValues([]);
-  };
-
-  // 表格行样式
-  const customTableRowStyle: React.CSSProperties = {
-    backgroundColor: '#f0f0f0',
-  };
-
-  // 表格样式
-  const tableStyle: React.CSSProperties = {
-    backgroundColor: '#f0f0f0',
-  };
-
-  // 选择器样式
-  const selectStyle: React.CSSProperties = {
-    width: '100%',
-    borderColor: '#ff0000',
-    backgroundColor: '#fff',
-  };
-
-  // 分页配置
-  const paginationConfig = data.length > 8 ? {
-    pageSize: 8,
-    total: data.length
-  } : false;
 
   return (
     <div style={layoutContainerStyle}>
@@ -171,14 +143,7 @@ const OnlineManage: React.FC = () => {
       >
         <Title level={3} style={{ margin: 0 }}>状态</Title>
         <Divider orientation="left">在线玩家</Divider>
-        <Table<DataType>
-          columns={columns}
-          dataSource={data}
-          size="middle"
-          rowClassName={() => 'custom-table-row'}
-          tableStyle={tableStyle}
-          pagination={paginationConfig}
-        />
+        <OnlinePlayer />
       </Card>
     </div>
   );

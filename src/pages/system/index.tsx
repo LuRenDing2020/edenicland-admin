@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Layout, Menu, Button, Dropdown, Avatar } from 'antd';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Layout, Menu, Button, Dropdown, Avatar, message } from 'antd';
 import {
   DashboardOutlined,
   CloudServerOutlined,
@@ -109,15 +109,15 @@ const menuItems = [
     ]
   },
   // {
-  //   key: 'setting',
-  //   label: (
-  //     <Link to="setting">系统设置</Link>
-  //   ),
-  //   icon: <SettingOutlined />
+  //     key:'setting',
+  //     label: (
+  //         <Link to="setting">系统设置</Link>
+  //     ),
+  //     icon: <SettingOutlined />
   // },
   {
     key: 'Settings',
-    label: '审核系统',
+    label: '系统设置',
     icon: <SettingOutlined />,
     children: [
       {
@@ -132,7 +132,7 @@ const menuItems = [
         label: (
           <Link to="usermanage">用户管理</Link>
         ),
-        icon: <ProfileOutlined />
+        icon: <UserOutlined />
       }
     ]
   }
@@ -142,6 +142,16 @@ const Index: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<string[]>(['dashboard']);
   const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [username, setUsername] = useState<string>('');
+
+  // 提前定义 handleLogout 函数
+  const handleLogout = () => {
+    // 清除 localStorage 中的用户信息
+    localStorage.removeItem('username');
+    // 导航到登录页面
+    navigate('/login');
+  };
 
   const logoContainerStyle = {
     height: 64,
@@ -174,9 +184,9 @@ const Index: React.FC = () => {
     <Menu>
       <Menu.Item key="1" icon={<UserOutlined />}>个人信息</Menu.Item>
       <Menu.Item key="2" icon={<LockOutlined />}>修改密码</Menu.Item>
-      <Menu.Item key="3" icon={<LogoutOutlined />} onClick={() => navigate('/login')}>退出登录</Menu.Item>
+      <Menu.Item key="3" icon={<LogoutOutlined />} onClick={handleLogout}>退出登录</Menu.Item>
     </Menu>
-  ), [navigate]);
+  ), [handleLogout, navigate]);
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
@@ -218,8 +228,22 @@ const Index: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const loginSuccessMessage = localStorage.getItem('loginSuccessMessage');
+    if (loginSuccessMessage) {
+      messageApi.success(loginSuccessMessage);
+      localStorage.removeItem('loginSuccessMessage');
+    }
+
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, [messageApi]);
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
+      {contextHolder}
       <Sider style={siderStyle} collapsed={collapsed}>
         <div style={logoContainerStyle}>
           <img
@@ -255,7 +279,7 @@ const Index: React.FC = () => {
             {/* 再显示用户名和下拉箭头 */}
             <Dropdown overlay={userMenu} placement="bottomRight">
               <span style={{ marginLeft: 10 }}>
-                用户名 <DownOutlined />
+                {username} <DownOutlined />
               </span>
             </Dropdown>
           </div>

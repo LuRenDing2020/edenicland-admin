@@ -1,15 +1,14 @@
 import React from 'react';
-import { Card, Checkbox, Flex, Input, Typography, Tabs, Form, Button } from 'antd';
+import { Card, Checkbox, Flex, Input, Typography, Tabs, Form, Button, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import Footer from '../../components/footer.tsx';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
 
 // 提取背景图片 URL 到常量
 //1
-const BACKGROUND_IMAGE_URL = 'https://img.picui.cn/free/2025/01/26/679512306bc9d.jpg'; 
+const BACKGROUND_IMAGE_URL = 'https://img.picui.cn/free/2025/01/26/679512306bc9d.jpg';
 
 // 4
 // const BACKGROUND_IMAGE_URL = 'https://img.picui.cn/free/2025/01/26/6795128310a3a.jpg';
@@ -22,36 +21,39 @@ const BACKGROUND_IMAGE_URL = 'https://img.picui.cn/free/2025/01/26/679512306bc9d
 
 const Login = () => {
   const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
 
-  const handleLogin = () => {
-    // 模拟登录成功
-    // 实际应用中，这里应该是登录逻辑，例如发送请求到服务器验证用户信息
-    // 登录成功后导航到 Index 页面
-    navigate('/index');
+  const onFinish = async (values) => {
+      const { username: id, password } = values;
+      try {
+          // 发送登录请求到后端
+          const response = await fetch('http://127.0.0.1:5000/login', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ ID: id, password }),
+          });
+
+          const data = await response.json();
+          if (response.status === 200) {
+              // 登录成功，将提示信息存入localStorage
+              localStorage.setItem('username', id);
+              localStorage.setItem('loginSuccessMessage', data.message);
+              messageApi.success(data.message);
+              navigate('/index');
+          } else {
+              // 登录失败，显示错误消息
+              messageApi.error('用户名或密码错误');
+          }
+      } catch (error) {
+          // 处理请求失败的情况
+          console.error('登录请求失败:', error);
+          messageApi.error('请求失败');
+      }
   };
-  const onFinish = (values) => {
-    console.log('Received values of form: ', values);
-    // 这里可以添加登录逻辑，如发送请求到服务器进行验证
-    // 示例：使用 fetch API 发送登录请求
-    // fetch('/api/login', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(values),
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //   if (data.success) {
-    //     // 登录成功，跳转到首页或其他页面
-    //   } else {
-    //     // 登录失败，显示错误信息
-    //   }
-    // })
-    // .catch(error => {
-    //   console.error('登录请求失败:', error);
-    // });
-  };
+
+
 
   // 样式部分
   const styles = `
@@ -112,6 +114,7 @@ const Login = () => {
 
   return (
     <div className="login-container">
+      {contextHolder}
       <Card bordered={false} className="login-card">
         <div className="title">
           <Title level={2} style={{ marginBottom: 0 }}>EdenicLand 管理系统</Title>
@@ -156,32 +159,31 @@ const Login = () => {
           <TabPane tab="SSO登录" key="2">
             <div className="sso-login">
               <p>使用 SAKURAWORKSHOP · SSO 一键登录</p>
-              <Button block type="primary" onClick={handleLogin}>登录</Button>
+              <Button block type="primary" disabled>登录</Button>
               <p className="sso-tip">该功能正在施工中，敬请期待</p>
             </div>
           </TabPane>
         </Tabs>
       </Card>
       <footer style={{
-      margin: 0,
-      padding: '2px 0', // 增加一些内边距
-      position: 'fixed',
-      bottom: 0,
-      width: '100%',
-      textAlign: 'center',
-      color: '#fff',
-      fontSize: '14px',
-      lineHeight: '30px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      // 响应式设计：在小屏幕上调整字体大小
-      '@media (max-width: 600px)': {
-        fontSize: '12px'
-      }
-    }}>
-      © 2025 EdenicLand, SAKURAWORKSHOP. All rights reserved.
-    </footer>
+        margin: 0,
+        padding: '2px 0',
+        position: 'fixed',
+        bottom: 0,
+        width: '100%',
+        textAlign: 'center',
+        color: '#fff',
+        fontSize: '14px',
+        lineHeight: '30px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        '@media (max-width: 600px)': {
+          fontSize: '12px'
+        }
+      }}>
+        © 2025 EdenicLand, SAKURAWORKSHOP. All rights reserved.
+      </footer>
     </div>
   );
 };
