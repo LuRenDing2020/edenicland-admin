@@ -16,6 +16,7 @@ interface User {
 
 const UserManage: React.FC = () => {
   const { Title } = Typography;
+  const [messageApi, contextHolder] = message.useMessage();
 
   // 容器样式
   const containerStyle: React.CSSProperties = {
@@ -62,16 +63,16 @@ const UserManage: React.FC = () => {
     try {
       const response: AxiosResponse<any> = await axios.post(`${API_BASE_URL}/auth/register`, values);
       if (response.status === 201) {
-        message.success('用户添加成功');
+        messageApi.success('用户添加成功');
         handleCancelAddUser();
         // 重新获取用户列表
         fetchUsers();
       }
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        message.error('用户名或邮箱已存在');
+        messageApi.error('用户名或邮箱已存在');
       } else {
-        message.error('添加用户失败');
+        messageApi.error('添加用户失败');
       }
     }
   };
@@ -82,7 +83,7 @@ const UserManage: React.FC = () => {
       const response: AxiosResponse<User[]> = await axios.get(`${API_BASE_URL}/users`);
       setUsers(response.data);
     } catch (error) {
-      message.error('获取用户列表失败');
+      messageApi.error('获取用户列表失败');
     }
   };
 
@@ -94,7 +95,7 @@ const UserManage: React.FC = () => {
   // 处理批量删除用户操作
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请选择要删除的用户');
+      messageApi.warning('请选择要删除的用户');
       return;
     }
 
@@ -102,14 +103,14 @@ const UserManage: React.FC = () => {
       for (const id of selectedRowKeys) {
         const response: AxiosResponse<any> = await axios.delete(`${API_BASE_URL}/users/${id}`);
         if (response.status === 200) {
-          message.success(`用户 ${id} 删除成功`);
+          messageApi.success(`用户 ${id} 删除成功`);
         }
       }
       // 重新获取用户列表
       fetchUsers();
       setSelectedRowKeys([]);
     } catch (error) {
-      message.error('批量删除用户失败');
+      messageApi.error('批量删除用户失败');
     }
   };
 
@@ -131,13 +132,13 @@ const UserManage: React.FC = () => {
     try {
       const response: AxiosResponse<any> = await axios.put(`${API_BASE_URL}/users/${editUser.id}`, values);
       if (response.status === 200) {
-        message.success('用户信息修改成功');
+        messageApi.success('用户信息修改成功');
         handleCancelEditUser();
         // 重新获取用户列表
         fetchUsers();
       }
     } catch (error) {
-      message.error('修改用户信息失败');
+      messageApi.error('修改用户信息失败');
     }
   };
 
@@ -146,12 +147,12 @@ const UserManage: React.FC = () => {
     try {
       const response: AxiosResponse<any> = await axios.put(`${API_BASE_URL}/users/${id}/ban`);
       if (response.status === 200) {
-        message.success('停用成功');
+        messageApi.success('停用成功');
         // 重新获取用户列表
         fetchUsers();
       }
     } catch (error) {
-      message.error('停用失败');
+      messageApi.error('停用失败');
     }
   };
 
@@ -160,12 +161,12 @@ const UserManage: React.FC = () => {
     try {
       const response: AxiosResponse<any> = await axios.put(`${API_BASE_URL}/users/${id}/unban`);
       if (response.status === 200) {
-        message.success('启用成功');
+        messageApi.success('启用成功');
         // 重新获取用户列表
         fetchUsers();
       }
     } catch (error) {
-      message.error('启用失败');
+      messageApi.error('启用失败');
     }
   };
 
@@ -201,7 +202,7 @@ const UserManage: React.FC = () => {
       key: 'is_banned',
       render: (is_banned: boolean) => (
         is_banned ? (
-          <span style={{ color:'red' }}>停用</span>
+          <span style={{ color: 'red' }}>停用</span>
         ) : (
           <span style={{ color: 'green' }}>正常</span>
         )
@@ -237,12 +238,12 @@ const UserManage: React.FC = () => {
     try {
       const response: AxiosResponse<any> = await axios.delete(`${API_BASE_URL}/users/${id}`);
       if (response.status === 200) {
-        message.success('用户删除成功');
+        messageApi.success('用户删除成功');
         // 重新获取用户列表
         fetchUsers();
       }
     } catch (error) {
-      message.error('删除用户失败');
+      messageApi.error('删除用户失败');
     }
   };
 
@@ -258,160 +259,163 @@ const UserManage: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      <Card bordered={false} style={cardStyle}>
-        <Title level={3} style={{ margin: 0 }}>
-          用户管理
-        </Title>
-        <Button
-          icon={<UserOutlined />}
-          onClick={showAddUserModal}
-          style={{ margin: 10 }}
-        >
-          添加用户
-        </Button>
-        <Button
-          icon={<DeleteOutlined />}
-          onClick={handleBatchDelete}
-          style={{ margin: 10 }}
-          disabled={selectedRowKeys.length === 0}
-        >
-          批量删除
-        </Button>
-        <Table
-          dataSource={users}
-          columns={columns}
-          rowSelection={rowSelection}
-          rowKey={(record: User) => record.id}
-          size="middle"
-        />
-      </Card>
+    <>
+      {contextHolder}
+      <div style={containerStyle}>
+        <Card bordered={false} style={cardStyle}>
+          <Title level={3} style={{ margin: 0 }}>
+            用户管理
+          </Title>
+          <Button
+            icon={<UserOutlined />}
+            onClick={showAddUserModal}
+            style={{ margin: 10 }}
+          >
+            添加用户
+          </Button>
+          <Button
+            icon={<DeleteOutlined />}
+            onClick={handleBatchDelete}
+            style={{ margin: 10 }}
+            disabled={selectedRowKeys.length === 0}
+          >
+            批量删除
+          </Button>
+          <Table
+            dataSource={users}
+            columns={columns}
+            rowSelection={rowSelection}
+            rowKey={(record: User) => record.id}
+            size="middle"
+          />
+        </Card>
 
-      {/* 添加用户模态框 */}
-      <Modal
-        title="添加用户"
-        visible={isAddUserModalVisible}
-        onCancel={handleCancelAddUser}
-        footer={null}
-      >
-        <Form
-          onFinish={handleAddUser}
-          labelAlign="left"
-          colon={false}
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 16 }}
-          style={{ maxWidth: 700 }}
+        {/* 添加用户模态框 */}
+        <Modal
+          title="添加用户"
+          visible={isAddUserModalVisible}
+          onCancel={handleCancelAddUser}
+          footer={null}
         >
-          <Form.Item
-            name="username"
-            label="用户名"
-            rules={[
-              {
-                required: true,
-                message: '请输入用户名',
-              },
-            ]}
-            style={formItemStyle}
+          <Form
+            onFinish={handleAddUser}
+            labelAlign="left"
+            colon={false}
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 16 }}
+            style={{ maxWidth: 700 }}
           >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="邮箱"
-            rules={[
-              {
-                required: true,
-                message: '请输入邮箱',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            label="密码"
-            rules={[
-              {
-                required: true,
-                message: '请输入密码',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input type="password" style={inputStyle} />
-          </Form.Item>
-          <Form.Item style={formItemStyle}>
-            <Button type="primary" htmlType="submit">
-              提交
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Form.Item
+              name="username"
+              label="用户名"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入用户名',
+                },
+              ]}
+              style={formItemStyle}
+            >
+              <Input style={inputStyle} />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="邮箱"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入邮箱',
+                },
+              ]}
+              style={formItemStyle}
+            >
+              <Input style={inputStyle} />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              label="密码"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入密码',
+                },
+              ]}
+              style={formItemStyle}
+            >
+              <Input type="password" style={inputStyle} />
+            </Form.Item>
+            <Form.Item style={formItemStyle}>
+              <Button type="primary" htmlType="submit">
+                提交
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
 
-      {/* 编辑用户模态框 */}
-      <Modal
-        title="编辑用户"
-        visible={isEditUserModalVisible}
-        onCancel={handleCancelEditUser}
-        footer={null}
-      >
-        <Form
-          initialValues={editUser}
-          onFinish={handleSaveEditUser}
-          labelAlign="left"
-          colon={false}
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 16 }}
-          style={{ maxWidth: 700 }}
+        {/* 编辑用户模态框 */}
+        <Modal
+          title="编辑用户"
+          visible={isEditUserModalVisible}
+          onCancel={handleCancelEditUser}
+          footer={null}
         >
-          <Form.Item
-            name="username"
-            label="用户名"
-            rules={[
-              {
-                required: true,
-                message: '请输入用户名',
-              },
-            ]}
-            style={formItemStyle}
+          <Form
+            initialValues={editUser}
+            onFinish={handleSaveEditUser}
+            labelAlign="left"
+            colon={false}
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 16 }}
+            style={{ maxWidth: 700 }}
           >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="邮箱"
-            rules={[
-              {
-                required: true,
-                message: '请输入邮箱',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            label="密码"
-            rules={[
-              {
-                required: true,
-                message: '请输入密码',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input type="password" style={inputStyle} />
-          </Form.Item>
-          <Form.Item style={formItemStyle}>
-            <Button type="primary" htmlType="submit">
-              保存
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+            <Form.Item
+              name="username"
+              label="用户名"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入用户名',
+                },
+              ]}
+              style={formItemStyle}
+            >
+              <Input style={inputStyle} />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="邮箱"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入邮箱',
+                },
+              ]}
+              style={formItemStyle}
+            >
+              <Input style={inputStyle} />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              label="密码"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入密码',
+                },
+              ]}
+              style={formItemStyle}
+            >
+              <Input type="password" style={inputStyle} />
+            </Form.Item>
+            <Form.Item style={formItemStyle}>
+              <Button type="primary" htmlType="submit">
+                保存
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    </>
   );
 };
 

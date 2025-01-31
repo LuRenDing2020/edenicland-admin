@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Table, Button, Modal, Form, Input, message, DatePicker, Select, Drawer } from 'antd';
+import { Card, Typography, Table, Button, Input, message } from 'antd';
 import axios, { AxiosResponse } from 'axios';
-import { UserOutlined, DeleteOutlined, EditOutlined, LockOutlined, UnlockOutlined, SearchOutlined, ContainerOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, SearchOutlined, ContainerOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-
+// 引入新组件
+import AddPlayerModal from '../../components/AddPlayerModal.tsx';
+import EditPlayerModal from '../../components/EditPlayerModal.tsx';
+import PlayerDetailDrawer from '../../components/PlayerDetailDrawer.tsx';
 // 从环境变量中获取后端 API 地址
 const API_BASE_URL = 'http://localhost:5000';
 
@@ -12,7 +15,7 @@ interface Player {
   game_id: string;
   qq: string;
   email: string;
-  permission_group: 'Player' | 'Builder' | 'Admin';
+  permission_group: 'Player' | 'Graduate Engineer' | 'Engineer' | 'Senior Engineer' | 'Admin';
   join_date: string;
   leave_date: string;
   leave_reason: string;
@@ -20,7 +23,6 @@ interface Player {
 
 const PlayerManage: React.FC = () => {
   const { Title } = Typography;
-  const { Option } = Select;
 
   // 容器样式
   const containerStyle: React.CSSProperties = {
@@ -71,24 +73,35 @@ const PlayerManage: React.FC = () => {
     setIsAddPlayerModalVisible(false);
   };
 
-  // 处理添加玩家表单的提交
+  // playermanage.tsx 中 handleAddPlayer 方法相关部分
   const handleAddPlayer = async (values: Player) => {
     try {
+      // 格式化日期
+      if (values.join_date && typeof values.join_date === 'object') {
+        values.join_date = dayjs(values.join_date).format('YYYY-MM-DD');
+      }
+      if (values.leave_date && typeof values.leave_date === 'object') {
+        values.leave_date = dayjs(values.leave_date).format('YYYY-MM-DD');
+      }
+
       const response: AxiosResponse<any> = await axios.post(`${API_BASE_URL}/players`, values);
       if (response.status === 201) {
-        message.success('玩家添加成功');
+        messageApi.success('玩家添加成功');
         handleCancelAddPlayer();
         // 重新获取玩家列表
         fetchPlayers();
       }
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        message.error('游戏 ID 已存在');
+        messageApi.error('游戏 ID 已存在');
       } else {
-        message.error('添加玩家失败');
+        messageApi.error('添加玩家失败');
       }
     }
   };
+
+  // 获取 messageApi
+  const [messageApi, contextHolder] = message.useMessage();
 
   // 从后端获取玩家列表
   const fetchPlayers = async () => {
@@ -100,7 +113,7 @@ const PlayerManage: React.FC = () => {
       const response: AxiosResponse<Player[]> = await axios.get(url);
       setPlayers(response.data);
     } catch (error) {
-      message.error('获取玩家列表失败');
+      messageApi.error('获取玩家列表失败');
     }
   };
 
@@ -117,18 +130,18 @@ const PlayerManage: React.FC = () => {
   // 处理批量删除玩家操作
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请选择要删除的玩家');
+      messageApi.warning('请选择要删除的玩家');
       return;
     }
 
     try {
       await axios.post(`${API_BASE_URL}/players/batch-delete`, { game_ids: selectedRowKeys });
-      message.success('玩家批量删除成功');
+      messageApi.success('玩家批量删除成功');
       // 重新获取玩家列表
       fetchPlayers();
       setSelectedRowKeys([]);
     } catch (error) {
-      message.error('批量删除玩家失败');
+      messageApi.error('批量删除玩家失败');
     }
   };
 
@@ -144,19 +157,37 @@ const PlayerManage: React.FC = () => {
     setEditPlayer(null);
   };
 
-  // 处理保存编辑玩家操作
+  // playermanage.tsx 中 handleSaveEditPlayer 方法相关部分
   const handleSaveEditPlayer = async (values: Player) => {
     if (!editPlayer) return;
     try {
+      // 格式化日期
+      if (values.join_date) {
+        const joinDateObj = dayjs(values.join_date);
+        if (!joinDateObj.isValid()) {
+          messageApi.error('入服日期格式无效，请检查后重试');
+          return;
+        }
+        values.join_date = joinDateObj.format('YYYY-MM-DD');
+      }
+      if (values.leave_date) {
+        const leaveDateObj = dayjs(values.leave_date);
+        if (!leaveDateObj.isValid()) {
+          messageApi.error('离开日期格式无效，请检查后重试');
+          return;
+        }
+        values.leave_date = leaveDateObj.format('YYYY-MM-DD');
+      }
+
       const response: AxiosResponse<any> = await axios.put(`${API_BASE_URL}/players/${editPlayer.game_id}`, values);
       if (response.status === 200) {
-        message.success('玩家信息修改成功');
+        messageApi.success('玩家信息修改成功');
         handleCancelEditPlayer();
         // 重新获取玩家列表
         fetchPlayers();
       }
     } catch (error) {
-      message.error('修改玩家信息失败');
+      messageApi.error('修改玩家信息失败');
     }
   };
 
@@ -172,13 +203,29 @@ const PlayerManage: React.FC = () => {
     setDetailPlayer(null);
   };
 
-  // 表单输入框样式
-  const formItemStyle: React.CSSProperties = {
-    marginBottom: 16,
+  // 处理删除玩家操作
+  const handleDeletePlayer = async (game_id: string) => {
+    try {
+      const response: AxiosResponse<any> = await axios.delete(`${API_BASE_URL}/players/${game_id}`);
+      if (response.status === 200) {
+        messageApi.success('玩家删除成功');
+        // 重新获取玩家列表
+        fetchPlayers();
+      }
+    } catch (error) {
+      messageApi.error('删除玩家失败');
+    }
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys: string[]) => {
+      setSelectedRowKeys(keys);
+    },
+    getCheckboxProps: (record: Player) => ({
+      disabled: false, // 可根据需要禁用某些行的选择
+      name: record.game_id, // 使用唯一的 ID 作为 name
+    }),
   };
 
   // 表格列定义
@@ -231,6 +278,7 @@ const PlayerManage: React.FC = () => {
             autoInsertSpace={false}
             onClick={() => handleEditPlayer(record)}
             style={{ marginRight: 8 }}
+            disabled
           >
             编辑
           </Button>
@@ -246,32 +294,14 @@ const PlayerManage: React.FC = () => {
     },
   ];
 
-  // 处理删除玩家操作
-  const handleDeletePlayer = async (game_id: string) => {
-    try {
-      const response: AxiosResponse<any> = await axios.delete(`${API_BASE_URL}/players/${game_id}`);
-      if (response.status === 200) {
-        message.success('玩家删除成功');
-        // 重新获取玩家列表
-        fetchPlayers();
-      }
-    } catch (error) {
-      message.error('删除玩家失败');
-    }
-  };
-
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: (keys: string[]) => {
-      setSelectedRowKeys(keys);
-    },
-    getCheckboxProps: (record: Player) => ({
-      disabled: false, // 可根据需要禁用某些行的选择
-      name: record.game_id, // 使用唯一的 ID 作为 name
-    }),
-  };
+  // 根据数据长度决定是否显示分页
+  const pagination = players.length >= 8 ? {
+    pageSize: 7,  // 每页显示7条数据
+  } : false;
 
   return (
+    <>
+    {contextHolder}
     <div style={containerStyle}>
       <Card bordered={false} style={cardStyle}>
         <Title level={3} style={{ margin: 0 }}>
@@ -286,7 +316,7 @@ const PlayerManage: React.FC = () => {
           suffix={<SearchOutlined onClick={handleSearch} />}
         />
         <Button
-          icon={<UserOutlined />}
+          icon={<PlusOutlined />}
           onClick={showAddPlayerModal}
           style={{ margin: 10 }}
         >
@@ -306,280 +336,33 @@ const PlayerManage: React.FC = () => {
           rowSelection={rowSelection}
           rowKey={(record: Player) => record.game_id}
           size="middle"
+          pagination={pagination} // 设置分页属性
         />
       </Card>
 
       {/* 添加玩家模态框 */}
-      <Modal
-        title="添加玩家"
-        visible={isAddPlayerModalVisible}
+      <AddPlayerModal
+        isVisible={isAddPlayerModalVisible}
         onCancel={handleCancelAddPlayer}
-        footer={null}
-      >
-        <Form
-          onFinish={handleAddPlayer}
-          labelAlign="left"
-          colon={false}
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 16 }}
-          style={{ maxWidth: 700 }}
-        >
-          <Form.Item
-            name="game_id"
-            label="游戏 ID"
-            rules={[
-              {
-                required: true,
-                message: '请输入游戏 ID',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="qq"
-            label="QQ"
-            rules={[
-              {
-                required: true,
-                message: '请输入 QQ',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              {
-                required: true,
-                message: '请输入 Email',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="permission_group"
-            label="权限组"
-            rules={[
-              {
-                required: true,
-                message: '请选择权限组',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Select style={inputStyle}>
-              <Option value="Player">Player</Option>
-              <Option value="Builder">Builder</Option>
-              <Option value="Admin">Admin</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="join_date"
-            label="入服日期"
-            rules={[
-              {
-                required: true,
-                message: '请选择入服日期',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <DatePicker
-              style={inputStyle}
-              format="YYYY-MM-DD"
-              onChange={(date) => date && date.format('YYYY-MM-DD')}
-            />
-          </Form.Item>
-          <Form.Item
-            name="leave_date"
-            label="离开日期"
-            style={formItemStyle}
-          >
-            <DatePicker
-              style={inputStyle}
-              format="YYYY-MM-DD"
-              onChange={(date) => date && date.format('YYYY-MM-DD')}
-            />
-          </Form.Item>
-          <Form.Item
-            name="leave_reason"
-            label="离开原因"
-            style={formItemStyle}
-          >
-            <Input.TextArea style={inputStyle} />
-          </Form.Item>
-          <Form.Item style={formItemStyle}>
-            <Button type="primary" htmlType="submit">
-              提交
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onAddPlayer={handleAddPlayer}
+      />
 
       {/* 编辑玩家模态框 */}
-      <Modal
-        title="编辑玩家"
-        visible={isEditPlayerModalVisible}
+      <EditPlayerModal
+        isVisible={isEditPlayerModalVisible}
         onCancel={handleCancelEditPlayer}
-        footer={null}
-      >
-        <Form
-          initialValues={editPlayer}
-          onFinish={handleSaveEditPlayer}
-          labelAlign="left"
-          colon={false}
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 16 }}
-          style={{ maxWidth: 700 }}
-        >
-          <Form.Item
-            name="game_id"
-            label="游戏 ID"
-            rules={[
-              {
-                required: true,
-                message: '请输入游戏 ID',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="qq"
-            label="QQ"
-            rules={[
-              {
-                required: true,
-                message: '请输入 QQ',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              {
-                required: true,
-                message: '请输入 Email',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Input style={inputStyle} />
-          </Form.Item>
-          <Form.Item
-            name="permission_group"
-            label="权限组"
-            rules={[
-              {
-                required: true,
-                message: '请选择权限组',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <Select style={inputStyle}>
-              <Option value="Player">Player</Option>
-              <Option value="Builder">Builder</Option>
-              <Option value="Admin">Admin</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="join_date"
-            label="入服日期"
-            rules={[
-              {
-                required: true,
-                message: '请选择入服日期',
-              },
-            ]}
-            style={formItemStyle}
-          >
-            <DatePicker
-              style={inputStyle}
-              format="YYYY-MM-DD"
-              onChange={(date) => date && date.format('YYYY-MM-DD')}
-            />
-          </Form.Item>
-          <Form.Item
-            name="leave_date"
-            label="离开日期"
-            style={formItemStyle}
-          >
-            <DatePicker
-              style={inputStyle}
-              format="YYYY-MM-DD"
-              onChange={(date) => date && date.format('YYYY-MM-DD')}
-            />
-          </Form.Item>
-          <Form.Item
-            name="leave_reason"
-            label="离开原因"
-            style={formItemStyle}
-          >
-            <Input.TextArea style={inputStyle} />
-          </Form.Item>
-          <Form.Item style={formItemStyle}>
-            <Button type="primary" htmlType="submit">
-              保存
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onSaveEditPlayer={handleSaveEditPlayer}
+        editPlayer={editPlayer}
+      />
 
       {/* 玩家详情 Drawer */}
-      <Drawer
-        title={detailPlayer ? `玩家详情 - ${detailPlayer.game_id}` : ''}
-        placement="right"
+      <PlayerDetailDrawer
+        isVisible={isDetailDrawerVisible}
         onClose={handleCloseDetailDrawer}
-        visible={isDetailDrawerVisible}
-        width={600}
-      >
-        {detailPlayer && (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>游戏 ID</span>
-              <span>{detailPlayer.game_id}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>QQ</span>
-              <span>{detailPlayer.qq}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>Email</span>
-              <span>{detailPlayer.email}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>权限组</span>
-              <span>{detailPlayer.permission_group}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>入服日期</span>
-              <span>{detailPlayer.join_date}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>离开日期</span>
-              <span>{detailPlayer.leave_date}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span>离开原因</span>
-              <span>{detailPlayer.leave_reason}</span>
-            </div>
-          </div>
-        )}
-      </Drawer>
+        detailPlayer={detailPlayer}
+      />
     </div>
+    </>
   );
 };
 

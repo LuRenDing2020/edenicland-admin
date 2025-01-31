@@ -1,4 +1,4 @@
-import { Card, Typography } from 'antd';
+import { Alert, Card, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 const { Title } = Typography;
@@ -38,6 +38,7 @@ const Dashboard = () => {
                 <Title level={3} style={{ margin: 0 }}>
                     {username ? `Hello, dear ${username}. Welcome back to Edenicland.` : 'Hi, dear guest.'}
                 </Title>
+                <Alert message="人员信息中的编辑按钮出大问题，现已禁用，请不要使用各种方式尝试打开。请确保第一次录入信息时信息绝对正确。" type="info" style={{ margin: 10 }} showIcon />
             </Card>
         </div>
     );

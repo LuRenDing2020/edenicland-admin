@@ -21,12 +21,21 @@ import {
   SettingOutlined,
   ProfileOutlined,
 } from '@ant-design/icons';
-import Logo from '../../assets/logo.png';
+import Logo from '../../components/logo.tsx';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
+
 
 const { Sider, Header, Content } = Layout;
 
-const menuItems = [
+// 定义菜单选项类型
+type MenuItemType = {
+  key: string;
+  label: React.ReactNode;
+  icon: React.ReactNode;
+  children?: MenuItemType[];
+};
+
+const menuItems: MenuItemType[] = [
   // 一、仪表盘
   {
     key: 'dashboard',
@@ -108,13 +117,6 @@ const menuItems = [
       }
     ]
   },
-  // {
-  //     key:'setting',
-  //     label: (
-  //         <Link to="setting">系统设置</Link>
-  //     ),
-  //     icon: <SettingOutlined />
-  // },
   {
     key: 'Settings',
     label: '系统设置',
@@ -138,11 +140,11 @@ const menuItems = [
   }
 ];
 
-const Index: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
+const Index: React.FC<{}> = () => {
+  const [collapsed, setCollapsed] = useState<boolean>(false);
   const [selectedKeys, setSelectedKeys] = useState<string[]>(['dashboard']);
   const navigate = useNavigate();
-  const [messageApi, contextHolder] = message.useMessage();
+  const [messageApi, contextHolder] = message.useMessage<typeof message>();
   const [username, setUsername] = useState<string>('');
 
   // 提前定义 handleLogout 函数
@@ -160,6 +162,7 @@ const Index: React.FC = () => {
     justifyContent: 'center',
     fontSize: 24,
     fontWeight: 'bold',
+    backgroundColor: '#ffb1b9'
   };
 
   const siderStyle = {
@@ -177,7 +180,7 @@ const Index: React.FC = () => {
     alignItems: 'center',
     paddingLeft: 20, // 左侧间距
     justifyContent: 'space-between', // 两端对齐
-    backgroundColor: '#ff6060'
+    backgroundColor: '#ffb1b9'
   };
 
   const userMenu = useMemo(() => (
@@ -192,7 +195,7 @@ const Index: React.FC = () => {
     setCollapsed(!collapsed);
   };
 
-  const handleMenuClick = (e) => {
+  const handleMenuClick = (e: { key: string }) => {
     setSelectedKeys([e.key]);
     switch (e.key) {
       case 'terminal':
@@ -246,14 +249,7 @@ const Index: React.FC = () => {
       {contextHolder}
       <Sider style={siderStyle} collapsed={collapsed}>
         <div style={logoContainerStyle}>
-          <img
-            src={Logo}
-            alt="Logo"
-            style={{ width: '80px', height: 'auto' }}
-            onError={(e) => {
-              e.target.src = 'https://cdn.sa.net/2025/01/28/jE4nwfmQbtKx1Ba.png'; // 当图片加载失败时，显示占位图
-            }}
-          />
+          <Logo />
         </div>
         <Menu
           mode="inline"
@@ -263,22 +259,22 @@ const Index: React.FC = () => {
           inlineCollapsed={collapsed} // 侧边栏折叠时只显示图标
           onSelect={handleMenuClick}
         />
-      </Sider>
-      <Layout>
-        <Header style={headerStyle}>
-          {/* 伸缩按键 */}
+        <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)' }}>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={toggleCollapsed}
-            style={{ marginRight: 10 }}
           />
+        </div>
+      </Sider>
+      <Layout>
+        <Header style={headerStyle}>
           <div style={{ display: 'flex', alignItems: 'center', flexGrow: 1, justifyContent: 'flex-end' }}>
             {/* 先显示头像 */}
             <Avatar style={{ backgroundColor: '#fde3cf', color: '#ff6060' }}>Admin</Avatar>
             {/* 再显示用户名和下拉箭头 */}
             <Dropdown overlay={userMenu} placement="bottomRight">
-              <span style={{ marginLeft: 10 }}>
+              <span style={{ marginLeft: 10, color: '#fff'}}>
                 {username} <DownOutlined />
               </span>
             </Dropdown>

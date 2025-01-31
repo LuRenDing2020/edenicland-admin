@@ -92,7 +92,7 @@ const Setting: React.FC = () => {
       <div style={containerStyle}>
         <Card bordered={false} style={cardStyle}>
           <Title level={3} style={{ margin: 0 }}>
-            系统设置
+            参数配置
           </Title>
           <Form
             form={form}
